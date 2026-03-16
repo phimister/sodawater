@@ -3,7 +3,6 @@ Simple engine for rendering animations with Bubbletea
 
 ## To-Do
 1. Rendering System
-    - Surface cell style optimization
     - Camera system
     - ASCII sprites & procedural
 2. Entity System

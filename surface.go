@@ -9,8 +9,7 @@ import (
 type Cell struct {
 	char  rune
 	empty bool
-	style lipgloss.Style
-	styled bool
+	style *lipgloss.Style
 }
 
 type Surface struct {
@@ -86,31 +85,55 @@ func (s *Surface) Render() string {
 	w := s.width
 	h := s.height
 
-	var sb strings.Builder
-	sb.Grow(( w + 1 ) * h) // width + 1 for newlines on each row
+	var out strings.Builder
+	out.Grow((w + 1) * h)
+
+	var run strings.Builder
+	var currentStyle *lipgloss.Style
+
+	flush := func() {
+		if run.Len() == 0 {
+			return
+		}
+
+		if currentStyle != nil {
+			out.WriteString(currentStyle.Render(run.String()))
+		} else {
+			out.WriteString(run.String())
+		}
+
+		run.Reset()
+	}
 
 	for y := range h {
 		row := y * w
 
 		for x := range w {
-			c := cells[row+x]
+			c := cells[row + x]
 
-			if c.empty {
-				sb.WriteRune(' ')
-				continue
+			ch := ' '
+			if !c.empty {
+				ch = c.char
 			}
 
-			if c.styled { // FIXME: Batch styling for better performance
-				sb.WriteString(c.style.Render(string(c.char)))
-			} else {
-				sb.WriteRune(c.char)
+			if run.Len() == 0 {
+				currentStyle = c.style
 			}
+
+			if c.style != currentStyle {
+				flush()
+				currentStyle = c.style
+			}
+
+			run.WriteRune(ch)
 		}
 
+		flush()
+
 		if y < h - 1 {
-			sb.WriteByte('\n')
+			out.WriteByte('\n')
 		}
 	}
 
-	return sb.String()
+	return out.String()
 }

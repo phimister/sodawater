@@ -30,7 +30,7 @@ func (c clockModel) Start() (clockModel, tea.Cmd) {
 
 func (c clockModel) Update(t tickMsg) (clockModel, tea.Cmd) {
 	now := time.Time(t)
-	c.deltat := now.Sub(c.lastTime).Seconds()
+	c.deltat = now.Sub(c.lastTime).Seconds()
 	c.lastTime = now
 	c.count++
 	return c, c.tick()

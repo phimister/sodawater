@@ -15,11 +15,20 @@ const (
 )
 
 type Model struct {
-	scene *Scene
-	clock clockModel
-	state state
-	width int
+	clock  clockModel
+	state  state
+	width  int
 	height int
+}
+
+func NewModel(opts ...Option) Model {
+	m := Model{clock: clockModel{tps: 24}}
+
+	for _, opt := range opts {
+		opt(&m)
+	}
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
@@ -33,8 +42,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		return m, tea.Quit
 
-	case tea.MouseMsg:
-		continue
+	// case tea.MouseMsg:
+	// 	# do something
 
 	case tea.WindowSizeMsg:
 		if m.state == initializing {
@@ -55,7 +64,12 @@ func (m Model) View() string {
 	if m.state == initializing {
 		return "Loading..."
 	}
-	return fmt.Sprintf("Window size of width %d, height %d", m.width, m.height)
+	return fmt.Sprintf(
+		"Window size of width %d, height %d, FPS of %.02f",
+		m.width,
+		m.height,
+		1 / m.clock.deltat,
+	)
 }
 
 func (m Model) Run() {
@@ -63,14 +77,4 @@ func (m Model) Run() {
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func NewModel(opts ...Option) Model {
-	m := Model{clock: clockModel{tps: 24}}
-
-	for _, opt := range opts {
-		opt(&m)
-	}
-
-	return m
 }
